@@ -17,9 +17,9 @@ int main() {
     int sock_fd;
     std::string json_str = "{\"message\": \"Hello, Generic Netlink!\"}\0";
 
-    FileManager fm(path_to_info);
+    // FileManager fm(path_to_info);
 
-    sock_fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
+    sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
     if (sock_fd < 0) {
         perror("socket");
         return -1;

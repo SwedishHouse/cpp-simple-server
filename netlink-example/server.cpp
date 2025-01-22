@@ -13,13 +13,15 @@
 int main() {
     struct sockaddr_nl sa;
     struct nlmsghdr *nlh;
-    FileManager fm(path_to_info);
+    memset(&sa, 0, sizeof(sa));
+    // memset(nlh, 0, sizeof(*nlh));
+    // FileManager fm(path_to_info);
     int sock_fd;
     char buffer[256];
 
     std::cout << "Server starts" << std::endl;
 
-    sock_fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
+    sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
     if (sock_fd < 0) {
         perror("socket");
         return -1;
@@ -30,7 +32,7 @@ int main() {
     sa.nl_pid = getpid();
     sa.nl_groups = 0;
 
-    fm.writeNumber(sa.nl_pid);
+    // fm.writeNumber(sa.nl_pid);
 
     if (bind(sock_fd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
         perror("bind");
