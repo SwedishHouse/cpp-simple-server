@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -std=c++17
+CXXFLAGS = -g -std=c++17 
 
 all: server client
 

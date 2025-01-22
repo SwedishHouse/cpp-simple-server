@@ -14,6 +14,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <string>
+#include <vector>
 
 int main()
 {
@@ -34,7 +36,7 @@ int main()
     // sending data
     const char* message = "Hello, server!";
     send(clientSocket, message, strlen(message), 0);
-
+    
     // closing socket
     close(clientSocket);
 
