@@ -14,7 +14,7 @@
 #define GENL_TEST_CMD_ECHO 1
 
 int main() {
-
+    unsigned int counter = 0;
     int sock_fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
     if (sock_fd < 0) {
         perror("socket");
@@ -51,57 +51,68 @@ int main() {
     sender_addr.nl_groups = 0; // In modern must be zero
 
     // Init process done (gennl_client_init())
-
+    const std::string request_base = "From client: ";
+    std::string response; 
     // Start sending to server
-    struct nlmsghdr *nlh_;
-    struct genlmsghdr *genlhdr_;
-    struct iovec iov_ = {0};
-    struct msghdr msg_ = {0};
+    while (true)
+    {
+        /* code */
+    
+    
+        struct nlmsghdr *nlh_;
+        struct genlmsghdr *genlhdr_;
+        struct iovec iov_ = {0};
+        struct msghdr msg_ = {0};
 
-    memset(&iov_, 0, sizeof(iov_));
-    memset(&msg_, 0, sizeof(msg_));
+        memset(&iov_, 0, sizeof(iov_));
+        memset(&msg_, 0, sizeof(msg_));
 
-    // Выделяем память для Netlink-сообщения
-    nlh_ = (struct nlmsghdr *)malloc(NLMSG_SPACE(GENL_HDRLEN + MAX_MESSAGE_SIZE));
-    if (nlh_ == NULL) {
-        perror("Can't allocate memory for netlink message with malloc()");
-        return INCORRECT_VALUE;
-    }
-    memset(nlh_, 0, NLMSG_SPACE(GENL_HDRLEN + MAX_MESSAGE_SIZE));
+        // Выделяем память для Netlink-сообщения
+        nlh_ = (struct nlmsghdr *)malloc(NLMSG_SPACE(GENL_HDRLEN + MAX_MESSAGE_SIZE));
+        if (nlh_ == NULL) {
+            perror("Can't allocate memory for netlink message with malloc()");
+            return INCORRECT_VALUE;
+        }
+        memset(nlh_, 0, NLMSG_SPACE(GENL_HDRLEN + MAX_MESSAGE_SIZE));
 
-    // Заполняем Netlink-сообщение
-    nlh_->nlmsg_len = NLMSG_SPACE(GENL_HDRLEN + MAX_MESSAGE_SIZE);
-    nlh_->nlmsg_pid = getpid();  // PID отправителя
-    nlh_->nlmsg_flags = 0;
+        // Заполняем Netlink-сообщение
+        nlh_->nlmsg_len = NLMSG_SPACE(GENL_HDRLEN + MAX_MESSAGE_SIZE);
+        nlh_->nlmsg_pid = getpid();  // PID отправителя
+        nlh_->nlmsg_flags = 0;
 
 
-    // Заполняем заголовок Generic Netlink
-    genlhdr_ = (struct genlmsghdr *)NLMSG_DATA(nlh_);
-    genlhdr_->cmd = CMD_CALCULATE;
+        // Заполняем заголовок Generic Netlink
+        genlhdr_ = (struct genlmsghdr *)NLMSG_DATA(nlh_);
+        genlhdr_->cmd = CMD_CALCULATE;
 
-    // Копируем данные в Netlink-сообщение
-    strcpy((char *)genlhdr_ + GENL_HDRLEN, "Hello from client");
+        response = request_base + std::to_string(++counter);
+        // Копируем данные в Netlink-сообщение
+        strcpy((char *)genlhdr_ + GENL_HDRLEN, response.c_str());
 
-    // Заполняем структуру iovec
-    iov_.iov_base = (void *)nlh_;
-    iov_.iov_len = nlh_->nlmsg_len;
+        // Заполняем структуру iovec
+        iov_.iov_base = (void *)nlh_;
+        iov_.iov_len = nlh_->nlmsg_len;
 
-    // Заполняем структуру msghdr
-    memset(&msg_, 0, sizeof(msg_));
-    msg_.msg_name = (void *)&sender_addr;
-    msg_.msg_namelen = sizeof(sender_addr);
-    msg_.msg_iov = &iov_;
-    msg_.msg_iovlen = 1;
+        // Заполняем структуру msghdr
+        memset(&msg_, 0, sizeof(msg_));
+        msg_.msg_name = (void *)&sender_addr;
+        msg_.msg_namelen = sizeof(sender_addr);
+        msg_.msg_iov = &iov_;
+        msg_.msg_iovlen = 1;
 
-    // Отправляем Netlink-сообщение
-    ssize_t sent_bytes = sendmsg(sock_fd, &msg_, 0);
-    if (sent_bytes < 0) {
-        perror("Error generic netlink message sending");
+        // Отправляем Netlink-сообщение
+        ssize_t sent_bytes = sendmsg(sock_fd, &msg_, 0);
+        if (sent_bytes < 0) {
+            perror("Error generic netlink message sending");
+            free(nlh_);
+            return INCORRECT_VALUE;
+        }
+        printf("Sent bytes:%ld\n", sent_bytes);
         free(nlh_);
-        return INCORRECT_VALUE;
+
+        std::cout << receive_gnl_message(sock_fd) << std::endl;
+        sleep(1);
     }
-    printf("Sent bytes:%ld\n", sent_bytes);
-    free(nlh_);
 
     // struct nlmsghdr *nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(GENL_HDRLEN + MAX_MESSAGE_SIZE));
     // memset(nlh, 0, NLMSG_SPACE(MAX_MESSAGE_SIZE));

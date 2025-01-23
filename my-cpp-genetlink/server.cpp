@@ -14,7 +14,7 @@
 #define GENL_TEST_CMD_ECHO 1
 
 int main() {
-
+    unsigned int counter = 0;
     // Create socket
     int sock_fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
     if (sock_fd < 0) {
@@ -43,9 +43,12 @@ int main() {
         close(sock_fd);
         return -1;
     }
-
+    const std::string response_base = "Response from server: ";
+    std::string response; 
     while (true) {
         std::cout << receive_gnl_message(sock_fd) <<std::endl;
+        response = response_base + std::to_string(++counter);
+        send_gnl_message(response, sock_fd);
         // struct nlmsghdr *nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(TEST_NL_BUFF_SIZE));
         // memset(nlh, 0, NLMSG_SPACE(TEST_NL_BUFF_SIZE));
 
