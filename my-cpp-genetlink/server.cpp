@@ -5,6 +5,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "../my-cpp-genetlink/request_processing.h"
+#include "pid_manager.h"
 
 #define TEST_NL_BUFF_SIZE 1024
 #define GENL_TEST_FAMILY_NAME "genl_test"
@@ -22,8 +24,14 @@ int main() {
 
     // Заполнение структуры sockaddr_nl для сервера
     struct sockaddr_nl sa = {0};
-    pid_t server_pid = getpid();
     memset(&sa, 0, sizeof(sa)); // Для надежности
+
+    PIDManager pid_mngr;
+
+    pid_t server_pid = getpid();
+    pid_mngr.writePIDToFile(pid_info, server_pid);
+    std::cout << "Server PID: " << server_pid <<std::endl;
+    
     sa.nl_family = AF_NETLINK; // Family Must
     sa.nl_pid = server_pid; //PID MUST
     sa.nl_groups = 0; // In modern must be zero
@@ -37,24 +45,25 @@ int main() {
     }
 
     while (true) {
-        struct nlmsghdr *nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(TEST_NL_BUFF_SIZE));
-        memset(nlh, 0, NLMSG_SPACE(TEST_NL_BUFF_SIZE));
+        std::cout << receive_gnl_message(sock_fd) <<std::endl;
+        // struct nlmsghdr *nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(TEST_NL_BUFF_SIZE));
+        // memset(nlh, 0, NLMSG_SPACE(TEST_NL_BUFF_SIZE));
 
-        struct sockaddr_nl src_addr;
-        socklen_t addr_len = sizeof(src_addr);
+        // struct sockaddr_nl src_addr;
+        // socklen_t addr_len = sizeof(src_addr);
 
-        if (recvfrom(sock_fd, nlh, NLMSG_SPACE(TEST_NL_BUFF_SIZE), 0, (struct sockaddr*)&src_addr, &addr_len) < 0) {
-            perror("recvfrom");
-            close(sock_fd);
-            return -1;
-        }
+        // if (recvfrom(sock_fd, nlh, NLMSG_SPACE(TEST_NL_BUFF_SIZE), 0, (struct sockaddr*)&src_addr, &addr_len) < 0) {
+        //     perror("recvfrom");
+        //     close(sock_fd);
+        //     return -1;
+        // }
 
-        struct genlmsghdr *genlh = (struct genlmsghdr *)NLMSG_DATA(nlh);
-        if (genlh->cmd == GENL_TEST_CMD_ECHO) {
-            std::cout << "Received message: " << (char *)NLMSG_DATA(nlh) + GENL_HDRLEN << std::endl;
-        }
+        // struct genlmsghdr *genlh = (struct genlmsghdr *)NLMSG_DATA(nlh);
+        // if (genlh->cmd == GENL_TEST_CMD_ECHO) {
+        //     std::cout << "Received message: " << (char *)NLMSG_DATA(nlh) + GENL_HDRLEN << std::endl;
+        // }
 
-        free(nlh);
+        // free(nlh);
     }
 
     close(sock_fd);

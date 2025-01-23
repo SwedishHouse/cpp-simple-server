@@ -18,6 +18,12 @@
 #ifndef INCORRECT_VALUE
 #define INCORRECT_VALUE -1
 #endif
+
+enum CMDS{
+    CMD_CALCULATE,
+    CMD_MAX
+};
+
 std::string receive_gnl_message(int listen_socket);
 socklen_t fill_sockaddr_nl(struct sockaddr_nl* addr_nl_struct,
                             short family, pid_t  process_pid, unsigned long groups);

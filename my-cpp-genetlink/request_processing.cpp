@@ -9,6 +9,9 @@ std::string receive_gnl_message(int listen_socket)
     struct iovec iov = {0};
     struct msghdr msg = {0};
 
+    memset(&iov, 0, sizeof(iov));
+    memset(&msg, 0, sizeof(msg));
+
     // Выделяем память для Netlink-сообщения
     nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(GENL_HDRLEN + MAX_MESSAGE_SIZE));
     if (nlh == NULL) {
@@ -16,6 +19,7 @@ std::string receive_gnl_message(int listen_socket)
         return "ERROR";
     }
 
+    memset(nlh, 0, NLMSG_SPACE(GENL_HDRLEN + MAX_MESSAGE_SIZE));
     // Заполняем структуру iovec
     iov.iov_base = (void*)nlh;
     iov.iov_len = NLMSG_SPACE(GENL_HDRLEN + MAX_MESSAGE_SIZE);
